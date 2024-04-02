@@ -1,15 +1,16 @@
 #include "raylib.h"
 #include <stdio.h>
 #include "player.h"
+#include <time.h>
 
 #ifndef WIDTH
-#define WIDTH 500
+#define WIDTH 1500
 #endif
 #ifndef HEIGHT
-#define HEIGHT 500
+#define HEIGHT 1080
 #endif
 int main(){
-    InitWindow(500, 500, "hello, world"); 
+    InitWindow(WIDTH, HEIGHT, "hello, world"); 
     if(IsWindowReady()){
         printf("Window is ready\n"); 
     }
@@ -17,15 +18,20 @@ int main(){
 
     Player *player = player_create(); 
     player_scale(player, (Vector2){50,50}); 
-    player_set_position(player, (Vector2){10,10}); 
+    player_position_set(player, (Vector2){10,10}); 
 
     Color backgroundColor = {0,0,0,255}; 
-    float time = 0; 
+    double curr = (double)clock(); 
+    double last = curr; 
+    double dt = 0; 
     while(!WindowShouldClose()){
-        time += .01; 
+        curr = (double)clock();  
+        dt = GetFrameTime(); 
+        last = curr; 
+
         ClearBackground(backgroundColor); 
         BeginDrawing(); 
-        player_set_angle_rads(player, time); 
+        player_update(player, dt); 
         player_render(player, (Color){255,255,255,255});  
         EndDrawing(); 
     }
