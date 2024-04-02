@@ -1,6 +1,7 @@
 #include "raylib.h"
 #include <stdio.h>
 #include "player.h"
+#include "asteroid.h"
 #include <time.h>
 
 #ifndef WIDTH
@@ -20,6 +21,8 @@ int main(){
     player_scale(player, (Vector2){50,50}); 
     player_position_set(player, (Vector2){10,10}); 
 
+    Asteroid *asteroid = asteroid_create(); 
+    asteroid_scale_set(asteroid, (Vector2){10,10}); 
     Color backgroundColor = {0,0,0,255}; 
     double curr = (double)clock(); 
     double last = curr; 
@@ -31,6 +34,8 @@ int main(){
 
         ClearBackground(backgroundColor); 
         BeginDrawing(); 
+        asteroid_update(asteroid, dt); 
+        asteroid_render(asteroid, (Color){255,255,255,255});
         player_update(player, dt); 
         player_render(player, (Color){255,255,255,255});  
         EndDrawing(); 

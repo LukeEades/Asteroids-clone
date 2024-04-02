@@ -2,7 +2,7 @@
 
 Player *player_create(){
     Player *player = (Player *)malloc(sizeof(Player)); 
-    player->numLives = 0; 
+    player->numLives = 3; 
     player->position = (Vector2){0,0}; 
     player->velocity = (Vector2){0,0}; 
     player->acceleration = (Vector2){0,0}; 
@@ -51,7 +51,7 @@ void player_update(Player *player, double dt){
     Vector2 newPos = {(1/2)*acceleration.x*pow(dt,2) + velocity.x*dt + player->position.x, (1/2)*acceleration.y*pow(dt,2) + velocity.y * dt + player->position.y};
     newPos = player_check_wrap(player, newPos); 
     player_position_set(player, newPos); 
-    player_velocity_set(player, velocity); 
+    player_velocity_set(player, velocity);
     player_velocity_add(player, (Vector2){player->velocity.x * -.05, player->velocity.y * -.05}); 
     player_acceleration_set(player, (Vector2){0,0}); 
 }
@@ -71,7 +71,8 @@ void player_acceleration_add(Player *player, Vector2 add){
 
 void player_get_input(Player *player, double dt){
     if(IsKeyDown(87)){
-        Vector2 acc = {cos(player->angle + PI/2) * 1000, sin(player->angle + PI/2) * 1000}; 
+        int speed = 2000; 
+        Vector2 acc = {cos(player->angle + PI/2) * speed, sin(player->angle + PI/2) * speed}; 
         player_acceleration_add(player, acc); 
     }
     if(IsKeyDown(65)){
@@ -104,4 +105,11 @@ Vector2 player_check_wrap(Player *player, Vector2 newPos){
         result.y = HEIGHT/2; 
     }
     return result; 
+}
+
+void player_reset(Player *player){
+    player_acceleration_set(player, (Vector2){0,0}); 
+    player_velocity_set(player, (Vector2){0,0}); 
+    player_angle_set_rads(player, 0); 
+    player_position_set(player, (Vector2){0,0}); 
 }
