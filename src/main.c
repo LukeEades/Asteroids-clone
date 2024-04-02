@@ -18,28 +18,41 @@ int main(){
     SetTargetFPS(60); 
 
     Player *player = player_create(); 
-    player_scale(player, (Vector2){50,50}); 
-    player_position_set(player, (Vector2){10,10}); 
+    player_scale(player, (Vector2){30,30}); 
+    player_position_set(player, (Vector2){100,100}); 
 
     Asteroid *asteroid = asteroid_create(); 
-    asteroid_scale_set(asteroid, (Vector2){10,10}); 
+    asteroid_scale_set(asteroid, (Vector2){25,25}); 
+    asteroid_velocity_set(asteroid, (Vector2){1,0}); 
     Color backgroundColor = {0,0,0,255}; 
     double curr = (double)clock(); 
     double last = curr; 
     double dt = 0; 
+    double timerLen = 0; 
+    double timer = timerLen; 
     while(!WindowShouldClose()){
         curr = (double)clock();  
         dt = GetFrameTime(); 
         last = curr; 
 
+        timer -= dt; 
+        if(timer < 0){
+            timer = timerLen; 
+            // do somthing
+        }
+
         ClearBackground(backgroundColor); 
         BeginDrawing(); 
-        asteroid_update(asteroid, dt); 
+        asteroid_update(asteroid, dt);
+        printf("collides: %i\n", asteroid_check_collide_player(asteroid, player));  
+        // asteroid_check_collide_player(asteroid, player); 
         asteroid_render(asteroid, (Color){255,255,255,255});
         player_update(player, dt); 
         player_render(player, (Color){255,255,255,255});  
         EndDrawing(); 
     }
+    player_delete(player); 
+    asteroid_delete(asteroid); 
     CloseWindow(); 
     return 0; 
 }

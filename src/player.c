@@ -1,47 +1,30 @@
 #include "player.h"
+#include "asteroid.h"
 
 Player *player_create(){
-    Player *player = (Player *)malloc(sizeof(Player)); 
+    Player *player = (Player *)malloc(sizeof(Player) + sizeof(Line) * 7); 
     player->numLives = 3; 
     player->position = (Vector2){0,0}; 
     player->velocity = (Vector2){0,0}; 
     player->acceleration = (Vector2){0,0}; 
     Vector2 vertices[] = {
         (Vector2){0,1}, 
-        (Vector2){-.7, -.7},
+        (Vector2){-1, -1},
+        (Vector2){1, -1},
         (Vector2){.7, -.7},
+        (Vector2){-.7, -.7}
     };
     player->scale = (Vector2){1,-1}; 
     player->angle = 0; 
+    player->numLines = 0; 
     memcpy(player->vertices,vertices,sizeof(vertices)); 
     return player; 
 }
 void player_render(Player *player, Color color){
-    Vector2 worldVec1 = local_to_world(player,player->vertices[0]); 
-    Vector2 worldVec2 = local_to_world(player,player->vertices[1]); 
-    Vector2 worldVec3 = local_to_world(player,player->vertices[2]); 
-    DrawLine(worldVec1.x, worldVec1.y, worldVec2.x, worldVec2.y, color); 
-    DrawLine(worldVec1.x, worldVec1.y, worldVec3.x, worldVec3.y, color); 
-    DrawLine(worldVec2.x, worldVec2.y, worldVec3.x, worldVec3.y, color); 
-}
-void player_scale(Player *player, Vector2 scale){
-   player->scale = scale; 
-}
-
-Vector2 local_to_world(Player *player, Vector2 vec){
-    Vector2 vecScale = {vec.x * player->scale.x, vec.y * player->scale.y}; 
-    Vector2 vecRotate = {vecScale.x * cos(player->angle) - vecScale.y * sin(player->angle), vecScale.y * cos(player->angle) + vecScale.x * sin(player->angle)};
-    Vector2 vecWorld = {vecRotate.x + player->position.x, vecRotate.y + player->position.y};
-    Vector2 vecScreen = {WIDTH/2 + vecWorld.x, HEIGHT/2 - vecWorld.y};
-    return vecScreen; 
-}
-
-void player_angle_set_rads(Player *player, float angle){
-    player->angle = angle; 
-}
-
-void player_position_set(Player *player, Vector2 pos){
-    player->position = pos; 
+    int i; 
+    for(i = 0; i < player->numLines; i++){
+        line_render(&(player->lines[i]), color); 
+    }    
 }
 
 void player_update(Player *player, double dt){
@@ -54,7 +37,48 @@ void player_update(Player *player, double dt){
     player_velocity_set(player, velocity);
     player_velocity_add(player, (Vector2){player->velocity.x * -.05, player->velocity.y * -.05}); 
     player_acceleration_set(player, (Vector2){0,0}); 
+
+    Vector2 worldVec1 = player_world_to_screen(player, local_to_world(player,player->vertices[0])); 
+    Vector2 worldVec2 = player_world_to_screen(player, local_to_world(player,player->vertices[1])); 
+    Vector2 worldVec3 = player_world_to_screen(player, local_to_world(player,player->vertices[2])); 
+    Line *lineA = line_create(worldVec1, worldVec2); 
+    Line *lineB = line_create(worldVec1, worldVec3); 
+    Line *lineC = line_create(worldVec2, worldVec3); 
+    line_set_velocity(lineA, player->velocity); 
+    line_set_velocity(lineB, player->velocity); 
+    line_set_velocity(lineC, player->velocity); 
+    line_update(lineA, dt); 
+    player->numLines = 3; 
+    memcpy(&(player->lines[0]), lineA, sizeof(Line)); 
+    memcpy(&(player->lines[1]), lineB, sizeof(Line)); 
+    memcpy(&(player->lines[2]), lineC, sizeof(Line)); 
+    line_delete(lineA); 
+    line_delete(lineB); 
+    line_delete(lineC); 
 }
+
+void player_scale(Player *player, Vector2 scale){
+   player->scale = scale; 
+}
+
+Vector2 local_to_world(Player *player, Vector2 vec){
+    Vector2 vecScale = {vec.x * player->scale.x, vec.y * player->scale.y}; 
+    Vector2 vecRotate = {vecScale.x * cos(player->angle) - vecScale.y * sin(player->angle), vecScale.y * cos(player->angle) + vecScale.x * sin(player->angle)};
+    Vector2 vecWorld = {vecRotate.x + player->position.x, vecRotate.y + player->position.y};
+    return vecWorld; 
+}
+
+Vector2 player_world_to_screen(Player *player, Vector2 vecWorld){
+    return (Vector2){WIDTH/2 + vecWorld.x, HEIGHT/2 - vecWorld.y}; 
+}
+void player_angle_set_rads(Player *player, float angle){
+    player->angle = angle; 
+}
+
+void player_position_set(Player *player, Vector2 pos){
+    player->position = pos; 
+}
+
 
 void player_acceleration_set(Player *player, Vector2 acceleration){
     player->acceleration = acceleration; 
@@ -112,4 +136,44 @@ void player_reset(Player *player){
     player_velocity_set(player, (Vector2){0,0}); 
     player_angle_set_rads(player, 0); 
     player_position_set(player, (Vector2){0,0}); 
+}
+
+void player_delete(Player *player){
+    free(player); 
+}
+
+void player_destroy(Player *player, float timer){
+    Line *lineA = line_create(player->vertices[0], player->vertices[1]); 
+    Line *lineB = line_create(player->vertices[0], player->vertices[2]); 
+    Line *lineC = line_create(player->vertices[1], player->vertices[2]); 
+ 
+}
+
+Line *line_create(Vector2 a, Vector2 b){
+    Line *line = (Line *)malloc(sizeof(Line)); 
+    line->a = a; 
+    line->b = b; 
+    line->velocity = (Vector2){0,0}; 
+    return line; 
+}
+
+void line_set_velocity(Line *line, Vector2 velocity){
+    line->velocity = velocity; 
+}
+void line_render(Line *line, Color color){
+    DrawLine(line->a.x, line->a.y, line->b.x, line->b.y, color); 
+}
+
+void line_update(Line *line, double dt){
+    Vector2 velocity = line->velocity; 
+    Vector2 newPosA = {velocity.x * dt + line->a.x, velocity.y * dt + line->a.y}; 
+    Vector2 newPosB = {velocity.x * dt + line->b.x, velocity.y * dt + line->b.y}; 
+    line->velocity.x += velocity.x * -.05; 
+    line->velocity.y += velocity.x * -.05; 
+    line->a = newPosA; 
+    line->b = newPosB; 
+}
+
+void line_delete(Line *line){
+    free(line); 
 }
