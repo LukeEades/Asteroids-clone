@@ -31,20 +31,29 @@ int main(){
     double timerLen = 0; 
     double timer = timerLen; 
     while(!WindowShouldClose()){
+        srand(time(0)); 
         curr = (double)clock();  
         dt = GetFrameTime(); 
         last = curr; 
 
         timer -= dt; 
         if(timer < 0){
-            timer = timerLen; 
+            timer = 0; 
+            if(player->dead){
+                player->dead = false; 
+                player_reset(player); 
+                
+            }
             // do somthing
         }
 
         ClearBackground(backgroundColor); 
         BeginDrawing(); 
         asteroid_update(asteroid, dt);
-        printf("collides: %i\n", asteroid_check_collide_player(asteroid, player));  
+        if(asteroid_check_collide_player(asteroid, player) && !player->dead){
+            timer = player_destroy(player); 
+            player->friction = -.05; 
+        }
         // asteroid_check_collide_player(asteroid, player); 
         asteroid_render(asteroid, (Color){255,255,255,255});
         player_update(player, dt); 

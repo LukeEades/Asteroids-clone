@@ -5,6 +5,8 @@
 #include <string.h>
 #include <math.h>
 #include <stdio.h>
+#include <stdbool.h>
+#include <time.h>
 
 #ifndef WIDTH
 #define WIDTH 1500
@@ -27,8 +29,10 @@ typedef struct Player{
     Vector2 acceleration; 
     Vector2 vertices[6];
     Vector2 scale; 
+    float friction; 
     float angle; 
     int numLines; 
+    bool dead; 
     Line lines[]; 
 } Player; 
 
@@ -36,7 +40,8 @@ Line *line_create(Vector2 a, Vector2 b);
 void line_render(Line *line, Color color); 
 void line_update(Line *line, double dt);
 void line_delete(Line *line); 
-void line_set_velocity(Line *line, Vector2 vel); 
+void line_set_velocity(Line *line, Vector2 vel, float angle); 
+void line_position_set(Line *line, Vector2 a, Vector2 b); 
 
 Player *player_create(); 
 void player_render(Player *player, Color color); 
@@ -55,6 +60,8 @@ void player_get_input(Player *player, double dt);
 void player_velocity_add(Player *player, Vector2 add); 
 Vector2 player_check_wrap(Player *player, Vector2 newPos); 
 void player_delete(Player *player); 
-void player_destroy(Player *player, float timer); 
+double player_destroy(Player *player); 
+void player_reset(Player *player); 
+
 
 #endif
