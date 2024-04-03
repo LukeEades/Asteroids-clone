@@ -15,7 +15,7 @@ Player *player_create(){
         (Vector2){-.7, -.7}, 
         (Vector2){0,-1.5}
     };
-    player->scale = (Vector2){1,-1}; 
+    player->scale = (Vector2){1,1}; 
     player->angle = 0; 
     player->friction = -.01; 
     player->numLines = 0; 
@@ -46,13 +46,11 @@ Player *player_create(){
 void player_render(Player *player, Color color){
     int i; 
     for(i = 0; i < player->numLines; i++){
-        // printf("lineAa: (%f, %f), (%f, %f)\n", player->lines[i].a.x, player->lines[i].a.y, player->lines[i].b.x, player->lines[i].b.y); 
         line_render(&(player->lines[i]), color); 
     }    
 }
 
 void player_update(Player *player, double dt){
-
     if(!(player->dead)){
         player_get_input(player, dt); 
         Vector2 worldVec1 = player_world_to_screen(player, local_to_world(player,player->vertices[0])); 
@@ -69,7 +67,6 @@ void player_update(Player *player, double dt){
         line_position_set(&(player->lines[5]), worldVec4, worldVec6); 
         line_position_set(&(player->lines[6]), worldVec5, worldVec6); 
     }else{
-
         line_set_velocity(&(player->lines[0]), (Vector2){-3, 3}, player->angle); 
         line_update(&(player->lines[0]), dt);
         line_set_velocity(&(player->lines[1]), (Vector2){3,3}, player->angle); 

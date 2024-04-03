@@ -1,36 +1,46 @@
 #include "asteroid.h"
 #include <stdlib.h>
 #include <string.h>
+#include "player.h"
 
-Vector2 asteroidVertices[] = {(Vector2){0,1}, (Vector2){1,2}, (Vector2){2,1}, (Vector2){1.5, 0}, (Vector2){2, -1}, (Vector2){0,-2}, (Vector2){-1, -2}, (Vector2){-2, -1}, (Vector2){-2, 1}, (Vector2){-1, 2}}; 
-
-Asteroid *asteroid_create(){
-    Asteroid *asteroid = (Asteroid *)malloc(sizeof(Asteroid) + sizeof(asteroidVertices)); 
-    memcpy(asteroid->vertices, asteroidVertices, sizeof(asteroidVertices)); 
+Vector2 asteroidVertices[11] = {(Vector2){0,1}, (Vector2){1,2}, (Vector2){2,1}, (Vector2){1.5, 0}, (Vector2){2, -1}, (Vector2){0,-2}, (Vector2){-1, -2}, (Vector2){-2, -1}, (Vector2){-2, 1}, (Vector2){-1, 2}, (Vector2){0,1}}; 
+Vector2 asteroid2[13] = {(Vector2){1,.5}, (Vector2){2,1}, (Vector2){1,2}, (Vector2){0, 1.5}, (Vector2){-1, 2}, (Vector2){-2,1}, (Vector2){-1.5, 0}, (Vector2){-2, -1}, (Vector2){-1, -2}, (Vector2){-.5, -1.5}, (Vector2){1, -2}, (Vector2){2, -.5}, (Vector2){1,.5}};
+Vector2 (*asteroids)[sizeof(asteroidVertices)/sizeof(Vector2)] = {&asteroidVertices, &asteroid2}; 
+// Line bigRocks[] = {(Line){(Vector2){0,1}, (Vector2){1,2}}, (Line){(Vector2){1,2}, (Vector2){2,1}}, (Line){(Vector2){2,1}, (Vector2){1.5, 0}}, (Line){(Vector2){1.5, 0}, (Vector2){2, -1}}, (Line){(Vector2){2,-1}, (Vector2){0,-2}}, (Line){(Vector2){0, -2}, (Vector2){-1,-2}}, (Line){(Vector2){-1, -2}, (Vector2){-2, -1}}, (Line){(Vector2){-2, -1}, (Vector2){-2,1}}, (Line){(Vector2){-2, 1}, (Vector2){-1, 2}}, (Line){(Vector2){-1, 2}, (Vector2){0,1}}}; 
+int asteroidModelVertLens[4] = {11,13, 13}; 
+Asteroid *asteroid_create(asteroidType type){
+    int modelNum = 0; 
+    Asteroid *asteroid = (Asteroid *)malloc(sizeof(Asteroid) + asteroidModelVertLens[modelNum] * sizeof(Vector2)); 
     asteroid->position = (Vector2){0,0};
     asteroid->velocity = (Vector2){0,0}; 
-    asteroid->scale = (Vector2){1,1}; 
+    asteroid->type = type; 
+    if(type == BIG){
+        asteroid->scale = (Vector2){25,25}; 
+
+    }else if(type == MEDIUM){
+        asteroid->scale = (Vector2){15, 15}; 
+    }else if(type == SMALL){
+        asteroid->scale = (Vector2){5,5}; 
+    }
     asteroid->acceleration = (Vector2){0,0}; 
-    asteroid->type = BIG; 
     asteroid->speed = 50; 
-    asteroid->numVerts = sizeof(asteroidVertices)/sizeof(Vector2); 
+    asteroid->modelNum = modelNum; 
+    asteroid->numVerts = asteroidModelVertLens[modelNum]; 
+    memcpy(asteroid->vertices, asteroids[asteroid->modelNum], asteroid->numVerts * sizeof(Vector2)); 
     return asteroid; 
 }
 
 void asteroid_render(Asteroid *asteroid, Color color){
-    Vector2 vertices[sizeof(asteroidVertices)];
-    memcpy(vertices, asteroid->vertices, sizeof(asteroidVertices)); 
-    int i; 
-    for(i = 0; i < sizeof(asteroidVertices)/sizeof(Vector2); i++){ 
-        int j = i + 1; 
-        if(j == sizeof(asteroidVertices)/sizeof(Vector2)){
-            j = 0; 
-        }
+    Vector2 vertices[asteroid->numVerts];
+    memcpy(vertices, asteroids[asteroid->modelNum], asteroid->numVerts * sizeof(Vector2)); 
+    int i;
+    for(i = 1; i < asteroid->numVerts; i++){ 
+        // printf("(%f, %f) - (%f, %f)\n", asteroid->vertices[i - 1].x, asteroid->vertices[i - 1].y, asteroid->vertices[i].x, asteroid->vertices[i].y); 
+        int j = i -1; 
         Vector2 a = asteroid_to_screen(asteroid, asteroid_to_world(asteroid, vertices[i])); 
         Vector2 b = asteroid_to_screen(asteroid, asteroid_to_world(asteroid, vertices[j])); 
         DrawLine(a.x, a.y, b.x, b.y, color); 
     }
-
 }
 
 void asteroid_scale_set(Asteroid *asteroid, Vector2 scale){
@@ -125,16 +135,10 @@ bool line_intersects(Vector2 a1, Vector2 a2, Vector2 b1, Vector2 b2){
 
 bool asteroid_check_collide_player(Asteroid *asteroid, Player *player){
     int i;
-    int bI;
-    for(i = 0; i < sizeof(asteroidVertices)/sizeof(Vector2); i++){
-        bI = i + 1; 
-        if(bI == sizeof(asteroidVertices)/sizeof(Vector2)){
-            bI = 0;
-        }
-        Vector2 a = asteroid_to_world(asteroid, asteroid->vertices[i]); 
-        Vector2 b = asteroid_to_world(asteroid, asteroid->vertices[bI]); 
+    for(i = 1; i < asteroid->numVerts; i++){
+        Vector2 a = asteroid_to_world(asteroid, asteroid->vertices[i - 1]); 
+        Vector2 b = asteroid_to_world(asteroid, asteroid->vertices[i]); 
         if(line_intersects(a, b, local_to_world(player, player->vertices[0]), local_to_world(player, player->vertices[1])) || line_intersects(a, b, local_to_world(player, player->vertices[0]), local_to_world(player, player->vertices[2]))){
-            // printf("index: %i\n", i);
             return true; 
         }
     }
@@ -145,9 +149,21 @@ void asteroid_delete(Asteroid *asteroid){
     free(asteroid); 
 }
 
-void asteroid_destroy(Asteroid *asteroid){
+void asteroid_destroy(Asteroid *asteroid, AsteroidList *list){
     // do particles
     // spawn new asteroids
+    if(asteroid->type == BIG){
+        int numNew = 2; 
+        // for(int i = 0; i < numNew; i++){
+        //     asteroid_create()
+        //     asteroid_list_add(list, )
+        // }
+    }else if(asteroid->type == MEDIUM){
+        int numNew = 3; 
+    }else if(asteroid->type == SMALL){
+        int numNew = 0; 
+    }
+    asteroid_list_remove(list, asteroid); 
 
 }
 
@@ -170,7 +186,6 @@ void asteroid_list_add(AsteroidList *list, Asteroid *asteroid){
 void asteroid_list_remove(AsteroidList *list, Asteroid *asteroid){
     for(int i = 0; i < list->length; i++){
         if(list->data[i] == asteroid){
-            printf("not goog\n"); 
             while(i + 1 < list->length){
                 list->data[i] = list->data[i +1]; 
                 i++; 

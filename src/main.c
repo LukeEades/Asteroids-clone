@@ -24,8 +24,7 @@ int main(){
     AsteroidList *list = asteroid_list_create(numAsteroids); 
 
     for(int i = 0; i < 5; i++){
-        Asteroid * asteroid = asteroid_create(); 
-        asteroid_scale_set(asteroid, (Vector2){25,25}); 
+        Asteroid * asteroid = asteroid_create(BIG); 
         asteroid_position_set(asteroid, (Vector2){((double)random()/RAND_MAX * 2 -1) * WIDTH/2, ((double)random()/RAND_MAX * 2 -1) * HEIGHT/2}); 
         asteroid_velocity_set(asteroid, (Vector2){(double)random()/RAND_MAX * 2 -1, (double)random()/RAND_MAX * 2 -1}); 
         asteroid_list_add(list, asteroid); 
@@ -66,8 +65,8 @@ int main(){
             asteroid_update(list->data[i], dt);
             if(asteroid_check_collide_player(list->data[i], player) && !player->dead){
                 timer = player_destroy(player);
-                asteroid_destroy(list->data[i]);
-                asteroid_list_remove(list, list->data[i]); 
+                asteroid_destroy(list->data[i], list);
+                // asteroid_list_remove(list, list->data[i]); 
                 player->friction = -.05;
             }
             asteroid_render(list->data[i], (Color){255,255,255,255});
