@@ -9,10 +9,10 @@
 #include <time.h>
 
 #ifndef WIDTH
-#define WIDTH 1500
+#define WIDTH 1000
 #endif
 #ifndef HEIGHT
-#define HEIGHT 1080
+#define HEIGHT 1000
 #endif
 
 

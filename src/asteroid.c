@@ -13,6 +13,7 @@ Asteroid *asteroid_create(){
     asteroid->acceleration = (Vector2){0,0}; 
     asteroid->type = BIG; 
     asteroid->speed = 50; 
+    asteroid->numVerts = sizeof(asteroidVertices)/sizeof(Vector2); 
     return asteroid; 
 }
 
@@ -143,3 +144,40 @@ bool asteroid_check_collide_player(Asteroid *asteroid, Player *player){
 void asteroid_delete(Asteroid *asteroid){
     free(asteroid); 
 }
+
+void asteroid_destroy(Asteroid *asteroid){
+    // do particles
+    // spawn new asteroids
+
+}
+
+AsteroidList *asteroid_list_create(int capacity){
+    AsteroidList *list = (AsteroidList *)malloc(sizeof(AsteroidList));
+    list->capacity = capacity; 
+    list->length = 0;
+    list->data = (Asteroid**)malloc(sizeof(Asteroid*) * list->capacity); 
+    return list;
+}
+
+void asteroid_list_add(AsteroidList *list, Asteroid *asteroid){
+    if(list->length + 1 >= list->capacity){
+        list->capacity *= 2; 
+        list->data = (Asteroid **)realloc(list->data, sizeof(Asteroid*) * list->capacity); 
+    }
+    list->data[list->length++] = asteroid; 
+}
+
+void asteroid_list_remove(AsteroidList *list, Asteroid *asteroid){
+    for(int i = 0; i < list->length; i++){
+        if(list->data[i] == asteroid){
+            printf("not goog\n"); 
+            while(i + 1 < list->length){
+                list->data[i] = list->data[i +1]; 
+                i++; 
+            }
+            list->length--; 
+            asteroid_delete(asteroid); 
+        }
+    }
+}
+

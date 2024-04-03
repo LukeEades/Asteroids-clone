@@ -34,19 +34,19 @@ Player *player_create(){
     Line *lineE = line_create(worldVec2, worldVec5); 
     Line *lineF = line_create(worldVec4, worldVec6);
     Line *lineG = line_create(worldVec5, worldVec6);
-    memcpy(&(player->lines[0]), lineA, sizeof(Line)); 
-    memcpy(&(player->lines[1]), lineB, sizeof(Line)); 
-    memcpy(&(player->lines[2]), lineC, sizeof(Line)); 
-    memcpy(&(player->lines[3]), lineD, sizeof(Line)); 
+    memcpy(&(player->lines[0]), lineA, sizeof(Line));
+    memcpy(&(player->lines[1]), lineB, sizeof(Line));
+    memcpy(&(player->lines[2]), lineC, sizeof(Line));
+    memcpy(&(player->lines[3]), lineD, sizeof(Line));
     memcpy(&(player->lines[4]), lineE, sizeof(Line));
-    memcpy(&(player->lines[5]), lineF, sizeof(Line)); 
-    memcpy(&(player->lines[6]), lineG, sizeof(Line));   
+    memcpy(&(player->lines[5]), lineF, sizeof(Line));
+    memcpy(&(player->lines[6]), lineG, sizeof(Line));
     return player; 
 }
 void player_render(Player *player, Color color){
     int i; 
     for(i = 0; i < player->numLines; i++){
-        printf("lineAa: (%f, %f), (%f, %f)\n", player->lines[i].a.x, player->lines[i].a.y, player->lines[i].b.x, player->lines[i].b.y); 
+        // printf("lineAa: (%f, %f), (%f, %f)\n", player->lines[i].a.x, player->lines[i].a.y, player->lines[i].b.x, player->lines[i].b.y); 
         line_render(&(player->lines[i]), color); 
     }    
 }
@@ -195,7 +195,8 @@ Line *line_create(Vector2 a, Vector2 b){
 }
 
 void line_set_velocity(Line *line, Vector2 velocity, float angle){
-    line->velocity = (Vector2){velocity.x * cos(angle) - velocity.y * sin(angle), velocity.y * cos(angle) + velocity.x * sin(angle)};  
+    line->velocity = (Vector2){velocity.x * cos(angle) - velocity.y * sin(angle), velocity.y * cos(angle) + velocity.x * sin(angle)};
+    // line->velocity = velocity;   
 }
 void line_render(Line *line, Color color){
     DrawLine(line->a.x, line->a.y, line->b.x, line->b.y, color); 
