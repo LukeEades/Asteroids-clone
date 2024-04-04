@@ -20,7 +20,7 @@ int main(){
 
     Player *player = player_create(); 
     player_scale(player, (Vector2){30,30}); 
-    player_position_set(player, (Vector2){100,100}); 
+    player_position_set(player, (Vector2){0,0}); 
     int numAsteroids = 6; 
     AsteroidList *list = asteroid_list_create(numAsteroids); 
 
@@ -54,8 +54,9 @@ int main(){
             last = curr;
             
             timer -= dt; 
-            if((int)((double)random()/RAND_MAX * 1800) == 100 && saucers[0] == NULL){
+            if((int)((double)random()/RAND_MAX * 800) == 100 && saucers[0] == NULL){
                 saucers[0] = saucer_create(BIGSAUCE); 
+                printf("my boy\n"); 
                 saucers[0]->position = (Vector2){((double)random()/RAND_MAX * 2 -1) * WIDTH/2, ((double)random()/RAND_MAX * 2 -1) * HEIGHT/2}; 
                 saucers[0]->velocity = (Vector2){(double)random()/RAND_MAX * 2 -1, (double)random()/RAND_MAX * 2 -1}; 
             }
@@ -92,15 +93,26 @@ int main(){
             ClearBackground(backgroundColor); 
             BeginDrawing(); 
             if(saucers[0]){
-                saucer_update(saucers[0], dt); 
+                saucer_update(saucers[0], player, dt); 
                 saucer_render(saucers[0], (Color){255,255,255,255}); 
                 for(int i = 0; i < player->bullets->length; i++){
                     if(saucer_collides_bullet(saucers[0], player->bullets->bullets[i])){
-                        bulletlist_remove(player->bullets, player->bullets->bullets[i]); 
+                        player_score_add(player, saucers[0]->type); 
                         saucer_delete(saucers[0]); 
                         saucers[0] = NULL; 
+                        bulletlist_remove(player->bullets, player->bullets->bullets[i]); 
+                        break; 
                     }   
                 }
+            if(saucers[0]){
+                for(int i = 0; i < saucers[0]->list->length; i++){
+                    if(player_collides_bullet(player, saucers[0]->list->bullets[i]) && !player->dead){
+                        timer = player_destroy(player); 
+                        player->friction = -.05; 
+                        bulletlist_remove(saucers[0]->list, saucers[0]->list->bullets[i]); 
+                    }
+                }
+            }
             }
             for(int i = 0; i < list->length; i++){
                 for(int j = 0; j < player->bullets->length; j++){
@@ -111,7 +123,6 @@ int main(){
                             player->numLives++; 
                         }
                         bulletlist_remove(player->bullets, player->bullets->bullets[j]); 
-
                     }
                 }
             }
@@ -125,6 +136,7 @@ int main(){
                     }
                     asteroid_destroy(list->data[i], list);
                     player->friction = -.05;
+                    i--; 
                 }
                 asteroid_render(list->data[i], (Color){255,255,255,255});
             }
@@ -158,7 +170,6 @@ int main(){
                     j--; 
                 }
                 if(saucers[0] != NULL){
-                    printf("not working\n"); 
                     saucer_delete(saucers[0]);
                     saucers[0] = NULL;
                 }

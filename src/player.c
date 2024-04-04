@@ -175,6 +175,25 @@ void player_angle_add_rads(Player *player, float angle){
     player->angle += angle; 
 }
 
+bool player_collides_bullet(Player *player, Bullet *bullet){
+     Vector2 vertices[] = {
+        (Vector2){0,1}, 
+        (Vector2){-1, -1},
+        (Vector2){1, -1},
+        (Vector2){0,1},
+    };
+    for(int i = 1; i < 4; i++){
+        Vector2 a = player_world_to_screen(player, local_to_world(player, vertices[i-1])); 
+        Vector2 b = player_world_to_screen(player, local_to_world(player, vertices[i])); 
+        Vector2 c = player_world_to_screen(player, local_to_world(player, (Vector2){0,0})); 
+        Vector2 bulletPos = (Vector2){bullet->position.x + 5 * cos(bullet->angle + PI/2), bullet->position.y - 5 * sin(bullet->angle + PI/2)};  
+        if(lines_intersect(a, b, bulletPos, c)){
+            return false; 
+        }
+    } 
+    return true;  
+}
+
 Vector2 player_check_wrap(Player *player, Vector2 newPos){
     Vector2 result = newPos; 
     if(newPos.x > WIDTH/2){
@@ -351,29 +370,43 @@ Saucer *saucer_create(saucerType type){
     memcpy(saucer->vertices, vertices, 9 * sizeof(Vector2)); 
     saucer->angle = (double)random()/RAND_MAX * 6.28; 
     if(type == BIGSAUCE){
-        saucer->timerLim = 10; 
+        saucer->moveTimerLim = 10; 
+        saucer->shootTimerLim = 3; 
         saucer->speed = 50; 
+        saucer->scale = 10; 
     }else if(type == SMALLSAUCE){
-        saucer->timerLim = 5; 
+        saucer->moveTimerLim = 5; 
+        saucer->scale = 5; 
+        saucer->shootTimerLim = 1.5; 
         saucer->speed = 100; 
     }
-    saucer->timer = saucer->timerLim;  
+    saucer->moveTimer = saucer->moveTimerLim;  
+    saucer->shootTimer = saucer->shootTimerLim; 
     saucer->velocity = (Vector2){saucer->speed * cos(saucer->angle), saucer->speed * sin(saucer->angle)}; 
     saucer->position = (Vector2){0,0}; 
     saucer->numVerts = sizeof(vertices)/sizeof(Vector2); 
-    if(type == SMALLSAUCE){
-        saucer->scale = 5; 
-    }else if(type == BIGSAUCE){
-        saucer->scale = 10; 
-    }
+    saucer->list = bulletlist_create(); 
     return saucer; 
 }
 
-void saucer_update(Saucer *saucer, double dt){
-    saucer->timer -= dt; 
-    if(saucer->timer < 0){
-        saucer->timer = saucer->timerLim;
+void saucer_update(Saucer *saucer, Player *player, double dt){
+    saucer->moveTimer -= dt; 
+    saucer->shootTimer -= dt; 
+    for(int i = 0; i < saucer->list->length; i++){
+        bullet_update(saucer->list->bullets[i], dt); 
+        if(saucer->list->bullets[i]->timer < 0){
+            bulletlist_remove(saucer->list, saucer->list->bullets[i]); 
+        }
+    }
+    if(saucer->moveTimer < 0){
+        saucer->moveTimer = saucer->moveTimerLim;
         saucer->angle = ((double)random()/RAND_MAX * 2 * PI); 
+    }
+    if(saucer->shootTimer < 0){
+        saucer->shootTimer = saucer->shootTimerLim; 
+        float angle =(3/2)*PI - angle_a_to_b(saucer_to_screen(saucer, saucer_to_world(saucer, (Vector2){0,0})),player_world_to_screen(player, local_to_world(player,(Vector2){0,0}))) + PI/2; 
+        Bullet *bullet = bullet_create(saucer_to_screen(saucer, saucer_to_world(saucer, (Vector2){0,0})), angle); 
+        bulletlist_append(saucer->list, bullet); 
     }
     saucer->velocity = (Vector2){saucer->speed * cos(saucer->angle), saucer->speed * sin(saucer->angle)}; 
     Vector2 vel = saucer->velocity; 
@@ -383,6 +416,9 @@ void saucer_update(Saucer *saucer, double dt){
 }
 
 void saucer_render(Saucer *saucer, Color color){
+    for(int i = 0; i < saucer->list->length; i++){
+        bullet_render(saucer->list->bullets[i], color);
+    }
     for(int i = 1; i < saucer->numVerts; i++){
         Vector2 a = saucer->vertices[i -1];
         Vector2 b = saucer->vertices[i];
@@ -435,4 +471,8 @@ Vector2 saucer_check_wrap(Saucer *saucer, Vector2 newPos){
         pos.y = HEIGHT/2; 
     }
     return pos; 
+}
+
+float angle_a_to_b(Vector2 a, Vector2 b){
+    return atan2(b.y - a.y, b.x - a.x); 
 }

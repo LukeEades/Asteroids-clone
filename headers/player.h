@@ -88,26 +88,29 @@ typedef enum saucerType{
 typedef struct Saucer{
     Vector2 position; 
     Vector2 velocity; 
-    float timer; 
+    float moveTimer; 
+    float moveTimerLim; 
     float speed; 
-    float timerLim; 
+    float shootTimer; 
+    float shootTimerLim; 
     saucerType type; 
     float scale; 
     float angle; 
     int numVerts; 
+    BulletList *list; 
     Vector2 vertices[]; 
 }Saucer; 
 
 
 Saucer *saucer_create(saucerType type); 
 void saucer_render(Saucer *saucer, Color color); 
-void saucer_update(Saucer *saucer, double dt); 
+void saucer_update(Saucer *saucer, Player *player, double dt); 
 Vector2 saucer_to_world(Saucer *saucer, Vector2 vec); 
 Vector2 saucer_to_screen(Saucer *saucer, Vector2 vec); 
 Vector2 saucer_check_wrap(Saucer *saucer, Vector2 vec); 
 void saucer_delete(Saucer *saucer); 
 bool saucer_collides_bullet(Saucer *saucer, Bullet *bullet);
-
+float angle_a_to_b(Vector2 a, Vector2 b); 
 
 Asteroid *asteroid_create(asteroidType type); 
 void asteroid_render(Asteroid * asteroid, Color color); 
@@ -171,6 +174,7 @@ void player_delete(Player *player);
 double player_destroy(Player *player); 
 void player_reset(Player *player); 
 void player_score_add(Player *player, int score); 
+bool player_collides_bullet(Player *player, Bullet *bullet); 
 
 
 #endif
