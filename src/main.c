@@ -13,6 +13,7 @@
 char screenState[32] = "start"; 
 int main(){
     InitWindow(WIDTH, HEIGHT, "Asteroids"); 
+    InitAudioDevice(); 
     if(IsWindowReady()){
         printf("Window is ready\n"); 
     }
@@ -23,6 +24,15 @@ int main(){
     player_position_set(player, (Vector2){0,0}); 
     int numAsteroids = 6; 
     AsteroidList *list = asteroid_list_create(numAsteroids); 
+
+    Sound explosion = LoadSound("./resources/explosion.wav"); 
+    SetSoundVolume(explosion, 1.0); 
+    Sound shoot = LoadSound("./resources/shoot.wav"); 
+    SetSoundVolume(shoot, 1.0); 
+    Sound collision = LoadSound("./resources/collision.wav"); 
+    SetSoundVolume(collision, 1.0); 
+
+    player_set_sound(player, shoot); 
 
     srandom((unsigned int)clock()); 
     Color backgroundColor = {0,0,0,255}; 
@@ -54,8 +64,9 @@ int main(){
             last = curr;
             
             timer -= dt; 
-            if((int)((double)random()/RAND_MAX * 800) == 100 && saucers[0] == NULL){
-                saucers[0] = saucer_create(BIGSAUCE); 
+            if((int)((double)random()/RAND_MAX * 1100) == 100 && saucers[0] == NULL){
+                saucers[0] = saucer_create(); 
+                saucer_set_sound(saucers[0], shoot); 
                 printf("my boy\n"); 
                 saucers[0]->position = (Vector2){((double)random()/RAND_MAX * 2 -1) * WIDTH/2, ((double)random()/RAND_MAX * 2 -1) * HEIGHT/2}; 
                 saucers[0]->velocity = (Vector2){(double)random()/RAND_MAX * 2 -1, (double)random()/RAND_MAX * 2 -1}; 
@@ -99,6 +110,7 @@ int main(){
                     if(saucer_collides_bullet(saucers[0], player->bullets->bullets[i])){
                         player_score_add(player, saucers[0]->type); 
                         saucer_delete(saucers[0]); 
+                        PlaySound(explosion); 
                         saucers[0] = NULL; 
                         bulletlist_remove(player->bullets, player->bullets->bullets[i]); 
                         break; 
@@ -110,6 +122,7 @@ int main(){
                         timer = player_destroy(player); 
                         player->friction = -.05; 
                         bulletlist_remove(saucers[0]->list, saucers[0]->list->bullets[i]); 
+                        PlaySound(explosion); 
                     }
                 }
             }
@@ -122,6 +135,7 @@ int main(){
                         if(player->score % 10000 < (player->score - list->data[i]->type) % 10000){
                             player->numLives++; 
                         }
+                        PlaySound(explosion);
                         bulletlist_remove(player->bullets, player->bullets->bullets[j]); 
                     }
                 }
@@ -134,6 +148,7 @@ int main(){
                     if(player->score % 10000 < (player->score - list->data[i]->type) % 10000){
                         player->numLives++; 
                     }
+                    PlaySound(collision); 
                     asteroid_destroy(list->data[i], list);
                     player->friction = -.05;
                     i--; 
@@ -181,6 +196,8 @@ int main(){
     }
     asteroid_list_delete(list); 
     player_delete(player); 
+    UnloadSound(explosion); 
+    CloseAudioDevice(); 
     CloseWindow(); 
     return 0; 
 }

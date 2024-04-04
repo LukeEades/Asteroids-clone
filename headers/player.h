@@ -44,6 +44,7 @@ typedef struct BulletList{
 typedef struct Player{
     int numLives; 
     Vector2 position; 
+    Sound shoot; 
     Vector2 velocity; 
     Vector2 acceleration; 
     Vector2 vertices[6];
@@ -87,6 +88,7 @@ typedef enum saucerType{
 
 typedef struct Saucer{
     Vector2 position; 
+    Sound shoot; 
     Vector2 velocity; 
     float moveTimer; 
     float moveTimerLim; 
@@ -101,8 +103,8 @@ typedef struct Saucer{
     Vector2 vertices[]; 
 }Saucer; 
 
-
-Saucer *saucer_create(saucerType type); 
+Saucer *saucer_create(); 
+void saucer_set_sound(Saucer *saucer, Sound sound); 
 void saucer_render(Saucer *saucer, Color color); 
 void saucer_update(Saucer *saucer, Player *player, double dt); 
 Vector2 saucer_to_world(Saucer *saucer, Vector2 vec); 
@@ -156,6 +158,7 @@ void line_position_set(Line *line, Vector2 a, Vector2 b);
 
 Player *player_create(); 
 void player_render(Player *player, Color color); 
+void player_set_sound(Player *player, Sound sound); 
 void player_lose_life(Player *player); 
 void player_velocity_set(Player *player, Vector2 velocity);
 void player_acceleration_set(Player *player, Vector2 acceleration); 

@@ -162,6 +162,7 @@ void player_get_input(Player *player, double dt){
         // give initial velocity
         Bullet *bullet = bullet_create(player->lines[0].a, player->angle); 
         bulletlist_append(player->bullets, bullet); 
+        PlaySound(player->shoot); 
         // printf("angle: %f\n", player->angle); 
     }
 }
@@ -273,7 +274,7 @@ Bullet* bullet_create(Vector2 position, float angle){
     bullet->speed = 500; 
     bullet->angle = angle; 
     bullet->velocity = (Vector2){bullet->speed * cos(bullet->angle + PI/2), bullet->speed * sin(bullet->angle + PI/2)};  
-    bullet->timer = 1;
+    bullet->timer = 2;
     return bullet;  
 }
 
@@ -353,8 +354,14 @@ void bulletlist_remove(BulletList *list, Bullet *bullet){
     }
 }
 
-Saucer *saucer_create(saucerType type){
+Saucer *saucer_create(){
     Saucer *saucer = (Saucer *)malloc(sizeof(Saucer) + sizeof(Vector2) * 9);
+    saucerType type; 
+    if((int)((double)random()/RAND_MAX * 2) == 1){
+        type = BIGSAUCE; 
+    }else{
+        type = SMALLSAUCE; 
+    }
     saucer->type = type;
     Vector2 vertices[] = {
         (Vector2){5,0},
@@ -403,6 +410,7 @@ void saucer_update(Saucer *saucer, Player *player, double dt){
         saucer->angle = ((double)random()/RAND_MAX * 2 * PI); 
     }
     if(saucer->shootTimer < 0){
+        PlaySound(saucer->shoot); 
         saucer->shootTimer = saucer->shootTimerLim; 
         float angle =(3/2)*PI - angle_a_to_b(saucer_to_screen(saucer, saucer_to_world(saucer, (Vector2){0,0})),player_world_to_screen(player, local_to_world(player,(Vector2){0,0}))) + PI/2; 
         Bullet *bullet = bullet_create(saucer_to_screen(saucer, saucer_to_world(saucer, (Vector2){0,0})), angle); 
@@ -475,4 +483,12 @@ Vector2 saucer_check_wrap(Saucer *saucer, Vector2 newPos){
 
 float angle_a_to_b(Vector2 a, Vector2 b){
     return atan2(b.y - a.y, b.x - a.x); 
+}
+
+void player_set_sound(Player *player, Sound sound){
+    player->shoot = sound;
+}
+
+void saucer_set_sound(Saucer *saucer, Sound sound){
+    saucer->shoot = sound; 
 }
