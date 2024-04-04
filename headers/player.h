@@ -14,7 +14,7 @@
 
 
 #ifndef WIDTH
-#define WIDTH 1000
+#define WIDTH 1500
 #endif
 #ifndef HEIGHT
 #define HEIGHT 1000
@@ -79,6 +79,29 @@ typedef struct AsteroidList{
     int capacity; 
     Asteroid **data;
 }AsteroidList; 
+
+typedef enum saucerType{
+    BIGSAUCE = 1000,
+    SMALLSAUCE = 1000,
+} saucerType; 
+
+typedef struct Saucer{
+    Vector2 position; 
+    Vector2 velocity; 
+    Vector2 acceleration; 
+    saucerType type; 
+    float scale; 
+    int numVerts; 
+    Vector2 vertices[]; 
+}Saucer; 
+
+
+Saucer *saucer_create(saucerType type); 
+void saucer_render(Saucer *saucer, Color color); 
+void saucer_update(Saucer *saucer, double dt); 
+Vector2 saucer_to_world(Saucer *saucer, Vector2 vec); 
+Vector2 saucer_to_screen(Saucer *saucer, Vector2 vec); 
+Vector2 saucer_check_wrap(Saucer *saucer, Vector2 vec); 
 
 
 Asteroid *asteroid_create(asteroidType type); 

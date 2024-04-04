@@ -89,10 +89,10 @@ Vector2 asteroid_check_wrap(Asteroid *asteroid, Vector2 newPos){
     }else if(newPos.x < -WIDTH/2){
         result.x = WIDTH/2; 
     }
-    if(newPos.y > WIDTH/2){
-        result.y = -WIDTH/2; 
-    }else if(newPos.y < -WIDTH/2){
-        result.y = WIDTH/2; 
+    if(newPos.y > HEIGHT/2){
+        result.y = -HEIGHT/2; 
+    }else if(newPos.y < -HEIGHT/2){
+        result.y = HEIGHT/2; 
     }
     return result; 
 }
@@ -197,5 +197,4 @@ void asteroid_list_remove(AsteroidList *list, Asteroid *asteroid){
         }
     }
 }
-
 

@@ -53,8 +53,11 @@ void player_render(Player *player, Color color){
 
     }   
     char numText[32]; 
-    sprintf(numText, "%d", player->score); 
-    DrawText(numText, WIDTH - 100, 50, 20, color); 
+    char livesText[32]; 
+    sprintf(numText, "Score: %d", player->score); 
+    sprintf(livesText, "Lives: %d", player->numLives); 
+    DrawText(numText, WIDTH - 200, 50, 20, color); 
+    DrawText(livesText, 50, 50, 20, color); 
 }
 
 void player_update(Player *player, double dt){
@@ -201,6 +204,7 @@ void player_delete(Player *player){
 
 double player_destroy(Player *player){
     player->dead = true; 
+    player->numLives--; 
     return 2; 
 }
 
@@ -300,7 +304,7 @@ void bullet_render(Bullet *bullet, Color color){
 }
 
 void bullet_destroy(Bullet *bullet){
-    // remove from bulletlist
+
     bullet_delete(bullet); 
 }
 void bullet_delete(Bullet *bullet){
@@ -335,4 +339,79 @@ void bulletlist_remove(BulletList *list, Bullet *bullet){
             bullet_delete(bullet); 
         }
     }
+}
+
+Saucer *saucer_create(saucerType type){
+    Saucer *saucer = (Saucer *)malloc(sizeof(Saucer) + sizeof(Vector2) * 9);
+    saucer->type = type; 
+    Vector2 vertices[] = {
+        (Vector2){5,0},
+        (Vector2){2, 1.5}, 
+        (Vector2){1,3}, 
+        (Vector2){-1, 3}, 
+        (Vector2){-2, 1.5},
+        (Vector2){-5, 0}, 
+        (Vector2){-2, -2},
+        (Vector2){2,-2},
+        (Vector2){5,0}
+    };
+    memcpy(saucer->vertices, vertices, 9 * sizeof(Vector2)); 
+    saucer->velocity = (Vector2){0,0}; 
+    saucer->acceleration = (Vector2){0,0}; 
+    saucer->position = (Vector2){0,0}; 
+    saucer->numVerts = sizeof(vertices)/sizeof(Vector2); 
+    if(type == SMALLSAUCE){
+        saucer->scale = 5; 
+    }else if(type == BIGSAUCE){
+        saucer->scale = 10; 
+    }
+    return saucer; 
+}
+
+void saucer_update(Saucer *saucer, double dt){
+    Vector2 acc = saucer->acceleration; 
+    Vector2 vel = {saucer->velocity.x + acc.x * dt, saucer->velocity.y + acc.y *dt}; 
+    Vector2 newPos = {saucer->position.x + vel.x * dt + (1/2) * acc.x * pow(dt,2), saucer->position.y + vel.y * dt + (1/2) * acc.y * pow(dt,2)}; 
+    
+    saucer->position = saucer_check_wrap(saucer,newPos); 
+    saucer->acceleration = (Vector2){0,0}; 
+}
+
+void saucer_render(Saucer *saucer, Color color){
+    for(int i = 1; i < saucer->numVerts; i++){
+        Vector2 a = saucer->vertices[i -1]; 
+        Vector2 b = saucer->vertices[i]; 
+        a = saucer_to_screen(saucer, saucer_to_world(saucer, a)); 
+        b = saucer_to_screen(saucer, saucer_to_world(saucer, b)); 
+        DrawLine(a.x, a.y, b.x, b.y,color); 
+    }   
+
+}
+
+Vector2 saucer_to_world(Saucer *saucer, Vector2 vec){
+    Vector2 newVec = vec; 
+    newVec.x *= saucer->scale; 
+    newVec.y *= saucer->scale; 
+    Vector2 world = {newVec.x + saucer->position.x, newVec.y + saucer->position.y}; 
+    return world; 
+}
+
+Vector2 saucer_to_screen(Saucer *saucer, Vector2 vec){
+    return (Vector2){WIDTH/2 + vec.x, HEIGHT/2 - vec.y}; 
+}
+
+// make into a general function for all objects
+Vector2 saucer_check_wrap(Saucer *saucer, Vector2 newPos){
+    Vector2 pos = newPos; 
+    if(newPos.x > WIDTH/2){
+        pos.x = -WIDTH/2; 
+    }else if(newPos.x < -WIDTH/2){
+        pos.x = WIDTH/2; 
+    }
+    if(newPos.y > HEIGHT/2){
+        pos.y = -HEIGHT/2; 
+    }else if(newPos.y < -HEIGHT/2){
+        pos.y = HEIGHT/2; 
+    }
+    return pos; 
 }
