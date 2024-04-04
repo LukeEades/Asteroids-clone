@@ -81,7 +81,7 @@ typedef struct AsteroidList{
 }AsteroidList; 
 
 typedef enum saucerType{
-    BIGSAUCE = 1000,
+    BIGSAUCE = 200,
     SMALLSAUCE = 1000,
 } saucerType; 
 
@@ -123,6 +123,7 @@ void asteroid_destroy(Asteroid *asteroid, AsteroidList *list);
 AsteroidList *asteroid_list_create(int capacity);
 void asteroid_list_add(AsteroidList *list, Asteroid *asteroid); 
 void asteroid_list_remove(AsteroidList *list, Asteroid *asteroid); 
+void asteroid_list_delete(AsteroidList *list); 
 
 
 Bullet* bullet_create(Vector2 position, float angle); 

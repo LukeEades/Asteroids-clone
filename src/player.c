@@ -195,7 +195,8 @@ void player_reset(Player *player){
     player_velocity_set(player, (Vector2){0,0}); 
     player_angle_set_rads(player, 0); 
     player_position_set(player, (Vector2){0,0}); 
-    player->friction = -.01; 
+    player->friction = -.01;
+    player->dead = false;  
 }
 
 void player_delete(Player *player){
@@ -253,7 +254,7 @@ Bullet* bullet_create(Vector2 position, float angle){
     bullet->speed = 500; 
     bullet->angle = angle; 
     bullet->velocity = (Vector2){bullet->speed * cos(bullet->angle + PI/2), bullet->speed * sin(bullet->angle + PI/2)};  
-    bullet->timer = 3;
+    bullet->timer = 1;
     return bullet;  
 }
 
@@ -271,14 +272,6 @@ void bullet_check_wrap(Bullet *bullet){
 }
 
 bool bullet_collide_asteroid(Bullet *bullet, Asteroid *asteroid){
-//     for(int i = 1; i < asteroid->numVerts; i++){
-//         Vector2 a = asteroid_to_screen(asteroid, asteroid_to_world(asteroid, asteroid->vertices[i - 1])); 
-//         Vector2 b = asteroid_to_screen(asteroid, asteroid_to_world(asteroid, asteroid->vertices[i])); 
-//         if(lines_intersect(a, b, bullet->position, (Vector2){bullet->position.x + 5 * cos(bullet->angle + PI/2), bullet->position.y - 5 * sin(bullet->angle + PI/2)})){
-//             return true; 
-//         }
-//     }
-//     return false; 
     for(int i = 1; i < asteroid->numVerts; i++){
         Vector2 asteroidA = asteroid_to_screen(asteroid, asteroid_to_world(asteroid, asteroid->vertices[i -1])); 
         Vector2 asteroidB = asteroid_to_screen(asteroid, asteroid_to_world(asteroid, asteroid->vertices[i]));

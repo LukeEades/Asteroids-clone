@@ -198,3 +198,6 @@ void asteroid_list_remove(AsteroidList *list, Asteroid *asteroid){
     }
 }
 
+void asteroid_list_delete(AsteroidList *list){
+    free(list); 
+}

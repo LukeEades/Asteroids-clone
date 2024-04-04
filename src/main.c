@@ -10,12 +10,6 @@
 #define HEIGHT 1000
 #endif
 
-// typedef struct state{
-//     int numAsteroids; 
-    
-
-// }state; 
-
 char screenState[32] = "start"; 
 int main(){
     InitWindow(WIDTH, HEIGHT, "Asteroids"); 
@@ -31,32 +25,24 @@ int main(){
     AsteroidList *list = asteroid_list_create(numAsteroids); 
 
     srandom((unsigned int)clock()); 
-    for(int i = 0; i < 6; i++){
-        Asteroid * asteroid = asteroid_create(BIG); 
-        asteroid_position_set(asteroid, (Vector2){((double)random()/RAND_MAX * 2 -1) * WIDTH/2, ((double)random()/RAND_MAX * 2 -1) * HEIGHT/2}); 
-        asteroid_velocity_set(asteroid, (Vector2){(double)random()/RAND_MAX * 2 -1, (double)random()/RAND_MAX * 2 -1}); 
-        asteroid_list_add(list, asteroid); 
-    }
     Color backgroundColor = {0,0,0,255}; 
     Color fontColor = {255,255,255,255}; 
     double curr = (double)clock(); 
     double last = curr; 
     double dt = 0; 
     double timerLen = 0; 
-    double timer = timerLen;    
+    double timer = timerLen;
     int level = 0; 
     char levelText[32]; 
     while(!WindowShouldClose()){
         if(!strcmp(screenState, "start")){
             BeginDrawing(); 
-            // maybe actually line render the letters
             char titleText[32] = "Asteroids";
             char titleSubText[32] = "Press space to begin"; 
             int titleFont = 50;     
             ClearBackground(backgroundColor); 
             DrawText(titleText, WIDTH/2 - MeasureText(titleText, titleFont)/2, HEIGHT/2 - 50, titleFont, fontColor); 
             DrawText(titleSubText, WIDTH/2 - MeasureText(titleSubText, titleFont - 20)/2, HEIGHT/2, titleFont - 20, fontColor); 
-                printf("%s\n", screenState); 
             if(IsKeyPressed(32)){
                 strcpy(screenState, "playing"); 
             }
@@ -65,8 +51,11 @@ int main(){
             curr = (double)clock();
             dt = GetFrameTime();
             last = curr;
-
+            
             timer -= dt; 
+            if(player->numLives <= 0){
+                strcpy(screenState, "game over"); 
+            }
             if(timer < 0){
                 timer = 0; 
                 if(player->dead){
@@ -78,14 +67,13 @@ int main(){
                         }
                     }
                     if(canSpawn){
-                        player->dead = false; 
                         player_reset(player); 
                     }
                 }
             }
             if(list->length == 0){
                 level++; 
-                if(level % 5 == 0){
+                if(level % 3 == 0){
                     numAsteroids++; 
                 }
                 for(int i = 0; i < numAsteroids; i++){
@@ -102,6 +90,9 @@ int main(){
                     if(bullet_collide_asteroid(player->bullets->bullets[j], list->data[i])){
                         asteroid_destroy(list->data[i], list); 
                         player_score_add(player, list->data[i]->type); 
+                        if(player->score % 10000 < (player->score - list->data[i]->type) % 10000){
+                            player->numLives++; 
+                        }
                         bulletlist_remove(player->bullets, player->bullets->bullets[j]); 
 
                     }
@@ -112,8 +103,10 @@ int main(){
                 if(asteroid_check_collide_player(list->data[i], player) && !player->dead){
                     timer = player_destroy(player);
                     player_score_add(player, list->data[i]->type); 
+                    if(player->score % 10000 < (player->score - list->data[i]->type) % 10000){
+                        player->numLives++; 
+                    }
                     asteroid_destroy(list->data[i], list);
-                    // asteroid_list_remove(list, list->data[i]); 
                     player->friction = -.05;
                 }
                 asteroid_render(list->data[i], (Color){255,255,255,255});
@@ -135,11 +128,25 @@ int main(){
                 printf("%s\n", screenState); 
             if(IsKeyPressed(32)){
                 strcpy(screenState, "playing"); 
+                player->numLives = 3; 
+                player_reset(player); 
+                level = 0; 
+                player->score = 0; 
+                for(int i = 0; i < list->length; i++){
+                    asteroid_destroy(list->data[i], list); 
+                    i--; 
+                }
+                for(int j = 0; j < player->bullets->length; j++){
+                    bulletlist_remove(player->bullets, player->bullets->bullets[j]); 
+                    j--; 
+                }
+                timer = 0; 
             }
             ClearBackground(backgroundColor); 
             EndDrawing(); 
         }
     }
+    asteroid_list_delete(list); 
     player_delete(player); 
     CloseWindow(); 
     return 0; 
