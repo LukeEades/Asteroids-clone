@@ -34,12 +34,13 @@ int main(){
     double timer = timerLen;
     int level = 0; 
     char levelText[32]; 
+    Saucer **saucers = (Saucer**)malloc(sizeof(Saucer*)); 
     while(!WindowShouldClose()){
         if(!strcmp(screenState, "start")){
             BeginDrawing(); 
             char titleText[32] = "Asteroids";
             char titleSubText[32] = "Press space to begin"; 
-            int titleFont = 50;     
+            int titleFont = 50;
             ClearBackground(backgroundColor); 
             DrawText(titleText, WIDTH/2 - MeasureText(titleText, titleFont)/2, HEIGHT/2 - 50, titleFont, fontColor); 
             DrawText(titleSubText, WIDTH/2 - MeasureText(titleSubText, titleFont - 20)/2, HEIGHT/2, titleFont - 20, fontColor); 
@@ -53,6 +54,12 @@ int main(){
             last = curr;
             
             timer -= dt; 
+            if((int)((double)random()/RAND_MAX * 1800) == 100 && !saucers[0]){
+                saucers[0] = saucer_create(BIGSAUCE); 
+                saucers[0]->position = (Vector2){((double)random()/RAND_MAX * 2 -1) * WIDTH/2, ((double)random()/RAND_MAX * 2 -1) * HEIGHT/2}; 
+                saucers[0]->velocity = (Vector2){(double)random()/RAND_MAX * 2 -1, (double)random()/RAND_MAX * 2 -1}; 
+                printf("rolled\n"); 
+            }
             if(player->numLives <= 0){
                 strcpy(screenState, "game over"); 
             }
@@ -85,6 +92,10 @@ int main(){
             }
             ClearBackground(backgroundColor); 
             BeginDrawing(); 
+            if(saucers[0]){
+                saucer_update(saucers[0], dt); 
+                saucer_render(saucers[0], (Color){255,255,255,255}); 
+            }
             for(int i = 0; i < list->length; i++){
                 for(int j = 0; j < player->bullets->length; j++){
                     if(bullet_collide_asteroid(player->bullets->bullets[j], list->data[i])){

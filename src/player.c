@@ -380,7 +380,10 @@ void saucer_render(Saucer *saucer, Color color){
     }   
 
 }
-
+void saucer_delete(Saucer *saucer){
+    free(saucer); 
+    saucer = NULL; 
+}
 Vector2 saucer_to_world(Saucer *saucer, Vector2 vec){
     Vector2 newVec = vec; 
     newVec.x *= saucer->scale; 
