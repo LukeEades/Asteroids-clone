@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include "raylib.h"
 #include <math.h>
-#include "player.h"
 #include <stdbool.h>
 
 #ifndef WIDTH
@@ -25,7 +24,7 @@ typedef struct Asteroid{
     Vector2 acceleration; 
     asteroidType type;
     int modelNum;  
-    float speed; 
+    float speed;
     int numVerts; 
     Vector2 vertices[]; 
 } Asteroid; 
@@ -36,6 +35,7 @@ typedef struct AsteroidList{
     Asteroid **data;
 }AsteroidList; 
 
+
 Asteroid *asteroid_create(asteroidType type); 
 void asteroid_render(Asteroid * asteroid, Color color); 
 Vector2 asteroid_to_world(Asteroid *asteroid, Vector2 vec); 
@@ -45,9 +45,10 @@ void asteroid_acceleration_set(Asteroid *asteroid, Vector2 acc);
 void asteroid_velocity_set(Asteroid *asteroid, Vector2 vel); 
 void asteroid_position_set(Asteroid *asteroid, Vector2 pos); 
 Vector2 asteroid_check_wrap(Asteroid *asteroid, Vector2 newPos); 
+
 void asteroid_update(Asteroid *asteroid, double dt); 
 Vector2 vec_scaled(Vector2 vec, float scale); 
-Vector2 lines_intersects(Vector2 a1, Vector2 a2, Vector2 b1, Vector2 b2); 
+bool lines_intersect(Vector2 a1, Vector2 a2, Vector2 b1, Vector2 b2); 
 bool asteroid_check_collide_player(Asteroid *asteroid, Player *player); 
 void asteroid_delete(Asteroid *asteroid); 
 void asteroid_destroy(Asteroid *asteroid, AsteroidList *list);

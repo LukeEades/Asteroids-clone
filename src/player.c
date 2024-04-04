@@ -1,5 +1,4 @@
 #include "player.h"
-#include "asteroid.h"
 
 Player *player_create(){
     Player *player = (Player *)malloc(sizeof(Player) + sizeof(Line) * 7); 
@@ -7,6 +6,7 @@ Player *player_create(){
     player->position = (Vector2){0,0}; 
     player->velocity = (Vector2){0,0}; 
     player->acceleration = (Vector2){0,0}; 
+    player->bullets = bulletlist_create(); 
     Vector2 vertices[] = {
         (Vector2){0,1}, 
         (Vector2){-1, -1},
@@ -47,10 +47,23 @@ void player_render(Player *player, Color color){
     int i; 
     for(i = 0; i < player->numLines; i++){
         line_render(&(player->lines[i]), color); 
-    }    
+    }
+    for(int j = 0; j < player->bullets->length; j++){
+        bullet_render(player->bullets->bullets[j], color); 
+
+    }   
+    char numText[32]; 
+    sprintf(numText, "%d", player->score); 
+    DrawText(numText, WIDTH - 100, 50, 20, color); 
 }
 
 void player_update(Player *player, double dt){
+    for(int j = 0; j < player->bullets->length; j++){ 
+        bullet_update(player->bullets->bullets[j], dt); 
+        if(player->bullets->bullets[j]->timer < 0){
+            bulletlist_remove(player->bullets, player->bullets->bullets[j]);
+        }
+    }
     if(!(player->dead)){
         player_get_input(player, dt); 
         Vector2 worldVec1 = player_world_to_screen(player, local_to_world(player,player->vertices[0])); 
@@ -140,6 +153,14 @@ void player_get_input(Player *player, double dt){
     if(IsKeyDown(68)){
         player_angle_add_rads(player, -PI * dt); 
     }
+    if(IsKeyPressed(32)){
+        // create new bullet entity
+        // assign position of front vertex
+        // give initial velocity
+        Bullet *bullet = bullet_create(player->lines[0].a, player->angle); 
+        bulletlist_append(player->bullets, bullet); 
+        // printf("angle: %f\n", player->angle); 
+    }
 }
 
 void player_velocity_add(Player *player, Vector2 add){
@@ -183,6 +204,10 @@ double player_destroy(Player *player){
     return 2; 
 }
 
+void player_score_add(Player *player, int score){
+    player->score += score; 
+}
+
 Line *line_create(Vector2 a, Vector2 b){
     Line *line = (Line *)malloc(sizeof(Line)); 
     line->a = a; 
@@ -216,4 +241,98 @@ void line_delete(Line *line){
 void line_position_set(Line *line, Vector2 a, Vector2 b){
     line->a = a; 
     line->b = b; 
+}
+
+Bullet* bullet_create(Vector2 position, float angle){
+    Bullet *bullet = (Bullet *)malloc(sizeof(Bullet)); 
+    bullet->position = position; 
+    bullet->speed = 500; 
+    bullet->angle = angle; 
+    bullet->velocity = (Vector2){bullet->speed * cos(bullet->angle + PI/2), bullet->speed * sin(bullet->angle + PI/2)};  
+    bullet->timer = 3;
+    return bullet;  
+}
+
+void bullet_check_wrap(Bullet *bullet){
+    if(bullet->position.x < 0){
+        bullet->position.x = WIDTH; 
+    }else if(bullet->position.x > WIDTH){
+        bullet->position.x = 0; 
+    }
+    if(bullet->position.y < 0){
+        bullet->position.y = HEIGHT; 
+    }else if(bullet->position.y > HEIGHT){
+        bullet->position.y = 0; 
+    }
+}
+
+bool bullet_collide_asteroid(Bullet *bullet, Asteroid *asteroid){
+//     for(int i = 1; i < asteroid->numVerts; i++){
+//         Vector2 a = asteroid_to_screen(asteroid, asteroid_to_world(asteroid, asteroid->vertices[i - 1])); 
+//         Vector2 b = asteroid_to_screen(asteroid, asteroid_to_world(asteroid, asteroid->vertices[i])); 
+//         if(lines_intersect(a, b, bullet->position, (Vector2){bullet->position.x + 5 * cos(bullet->angle + PI/2), bullet->position.y - 5 * sin(bullet->angle + PI/2)})){
+//             return true; 
+//         }
+//     }
+//     return false; 
+    for(int i = 1; i < asteroid->numVerts; i++){
+        Vector2 asteroidA = asteroid_to_screen(asteroid, asteroid_to_world(asteroid, asteroid->vertices[i -1])); 
+        Vector2 asteroidB = asteroid_to_screen(asteroid, asteroid_to_world(asteroid, asteroid->vertices[i]));
+        Vector2 asteroidCenter = asteroid_to_screen(asteroid, asteroid_to_world(asteroid,(Vector2){0,0})); 
+        Vector2 bulletPos = (Vector2){bullet->position.x + 5 * cos(bullet->angle + PI/2), bullet->position.y - 5 * sin(bullet->angle + PI/2)};  
+        if(lines_intersect(asteroidA, asteroidB, bulletPos, asteroidCenter)){
+            return false; 
+        }
+    } 
+    return true;  
+}
+
+void bullet_update(Bullet *bullet, double dt){
+    bullet->timer -= dt; 
+    bullet->position = (Vector2){bullet->velocity.x * dt + bullet->position.x, bullet->position.y - bullet->velocity.y * dt}; 
+    bullet_check_wrap(bullet); 
+}
+
+void bullet_render(Bullet *bullet, Color color){
+    Vector2 a = bullet->position; 
+    Vector2 b = (Vector2){bullet->position.x + 5 * cos(bullet->angle + PI/2), bullet->position.y - 5 * sin(bullet->angle + PI/2)}; 
+    DrawLine(a.x, a.y, b.x, b.y, color); 
+}
+
+void bullet_destroy(Bullet *bullet){
+    // remove from bulletlist
+    bullet_delete(bullet); 
+}
+void bullet_delete(Bullet *bullet){
+    free(bullet); 
+}
+
+
+BulletList *bulletlist_create(){
+    BulletList *list = (BulletList *)malloc(sizeof(BulletList)); 
+    list->capacity = 5; 
+    list->length = 0; 
+    list->bullets = (Bullet**)malloc(sizeof(Bullet *) * list->capacity); 
+    return list; 
+}
+
+void bulletlist_append(BulletList *list, Bullet *bullet){
+    if(list->length == list->capacity){
+        list->capacity *= 2; 
+        list->bullets = (Bullet **)realloc(list->bullets, sizeof(Bullet *) * list->capacity); 
+    }
+    list->bullets[list->length++] = bullet; 
+}
+
+void bulletlist_remove(BulletList *list, Bullet *bullet){
+    for(int i = 0; i < list->length; i++){
+        if(list->bullets[i] == bullet){
+            while(i < list->length){
+                list->bullets[i] = list->bullets[i + 1]; 
+                i++; 
+            }
+            list->length--; 
+            bullet_delete(bullet); 
+        }
+    }
 }

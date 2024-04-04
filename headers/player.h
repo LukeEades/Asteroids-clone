@@ -7,6 +7,11 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <time.h>
+#include <stdio.h>
+#include "raylib.h"
+#include <math.h>
+#include <stdbool.h>
+
 
 #ifndef WIDTH
 #define WIDTH 1000
@@ -22,6 +27,20 @@ typedef struct Line{
     Vector2 velocity; 
 } Line;
 
+typedef struct Bullet{
+    float timer; 
+    float angle; 
+    float speed;  
+    Vector2 velocity;
+    Vector2 position; 
+}Bullet; 
+
+typedef struct BulletList{
+    int length; 
+    int capacity; 
+    Bullet **bullets; 
+}BulletList; 
+
 typedef struct Player{
     int numLives; 
     Vector2 position; 
@@ -29,12 +48,72 @@ typedef struct Player{
     Vector2 acceleration; 
     Vector2 vertices[6];
     Vector2 scale; 
+    int score; 
     float friction; 
     float angle; 
     int numLines; 
     bool dead; 
+    BulletList *bullets; 
     Line lines[]; 
 } Player; 
+
+typedef enum asteroidType{
+    BIG = 20, 
+    MEDIUM = 50,
+    SMALL = 100
+} asteroidType;
+typedef struct Asteroid{
+    Vector2 scale; 
+    Vector2 position; 
+    Vector2 velocity; 
+    Vector2 acceleration; 
+    asteroidType type;
+    int modelNum;  
+    float speed; 
+    int numVerts; 
+    Vector2 vertices[]; 
+} Asteroid; 
+
+typedef struct AsteroidList{
+    int length; 
+    int capacity; 
+    Asteroid **data;
+}AsteroidList; 
+
+
+Asteroid *asteroid_create(asteroidType type); 
+void asteroid_render(Asteroid * asteroid, Color color); 
+Vector2 asteroid_to_world(Asteroid *asteroid, Vector2 vec); 
+Vector2 asteroid_to_screen(Asteroid *asteroid, Vector2 vecWorld); 
+void asteroid_scale_set(Asteroid *asteroid, Vector2 scale); 
+void asteroid_acceleration_set(Asteroid *asteroid, Vector2 acc); 
+void asteroid_velocity_set(Asteroid *asteroid, Vector2 vel); 
+void asteroid_position_set(Asteroid *asteroid, Vector2 pos); 
+Vector2 asteroid_check_wrap(Asteroid *asteroid, Vector2 newPos); 
+
+void asteroid_update(Asteroid *asteroid, double dt); 
+Vector2 vec_scaled(Vector2 vec, float scale); 
+bool lines_intersect(Vector2 a1, Vector2 a2, Vector2 b1, Vector2 b2); 
+bool asteroid_check_collide_player(Asteroid *asteroid, Player *player); 
+void asteroid_delete(Asteroid *asteroid); 
+void asteroid_destroy(Asteroid *asteroid, AsteroidList *list);
+AsteroidList *asteroid_list_create(int capacity);
+void asteroid_list_add(AsteroidList *list, Asteroid *asteroid); 
+void asteroid_list_remove(AsteroidList *list, Asteroid *asteroid); 
+
+
+Bullet* bullet_create(Vector2 position, float angle); 
+void bullet_update(Bullet *bullet, double dt); 
+void bullet_render(Bullet *bullet, Color color); 
+void bullet_delete(Bullet *bullet); 
+void bullet_destroy(Bullet *bullet); 
+void bullet_check_wrap(Bullet *bullet);
+bool bullet_collide_asteroid(Bullet *bullet, Asteroid *asteroid);  
+
+BulletList *bulletlist_create(); 
+void bulletlist_append(BulletList *list, Bullet *bullet); 
+void bulletlist_remove(BulletList *list, Bullet *bullet); 
+
 
 Line *line_create(Vector2 a, Vector2 b); 
 void line_render(Line *line, Color color); 
@@ -62,6 +141,7 @@ Vector2 player_check_wrap(Player *player, Vector2 newPos);
 void player_delete(Player *player); 
 double player_destroy(Player *player); 
 void player_reset(Player *player); 
+void player_score_add(Player *player, int score); 
 
 
 #endif
