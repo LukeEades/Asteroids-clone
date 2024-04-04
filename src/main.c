@@ -34,7 +34,7 @@ int main(){
     double timer = timerLen;
     int level = 0; 
     char levelText[32]; 
-    Saucer **saucers = (Saucer**)malloc(sizeof(Saucer*)); 
+    Saucer **saucers = (Saucer**)malloc(sizeof(Saucer*));
     while(!WindowShouldClose()){
         if(!strcmp(screenState, "start")){
             BeginDrawing(); 
@@ -54,11 +54,10 @@ int main(){
             last = curr;
             
             timer -= dt; 
-            if((int)((double)random()/RAND_MAX * 1800) == 100 && !saucers[0]){
+            if((int)((double)random()/RAND_MAX * 1800) == 100 && saucers[0] == NULL){
                 saucers[0] = saucer_create(BIGSAUCE); 
                 saucers[0]->position = (Vector2){((double)random()/RAND_MAX * 2 -1) * WIDTH/2, ((double)random()/RAND_MAX * 2 -1) * HEIGHT/2}; 
                 saucers[0]->velocity = (Vector2){(double)random()/RAND_MAX * 2 -1, (double)random()/RAND_MAX * 2 -1}; 
-                printf("rolled\n"); 
             }
             if(player->numLives <= 0){
                 strcpy(screenState, "game over"); 
@@ -78,7 +77,7 @@ int main(){
                     }
                 }
             }
-            if(list->length == 0){
+            if(list->length == 0 && !saucers[0]){
                 level++; 
                 if(level % 3 == 0){
                     numAsteroids++; 
@@ -95,6 +94,13 @@ int main(){
             if(saucers[0]){
                 saucer_update(saucers[0], dt); 
                 saucer_render(saucers[0], (Color){255,255,255,255}); 
+                for(int i = 0; i < player->bullets->length; i++){
+                    if(saucer_collides_bullet(saucers[0], player->bullets->bullets[i])){
+                        bulletlist_remove(player->bullets, player->bullets->bullets[i]); 
+                        saucer_delete(saucers[0]); 
+                        saucers[0] = NULL; 
+                    }   
+                }
             }
             for(int i = 0; i < list->length; i++){
                 for(int j = 0; j < player->bullets->length; j++){
@@ -150,6 +156,11 @@ int main(){
                 for(int j = 0; j < player->bullets->length; j++){
                     bulletlist_remove(player->bullets, player->bullets->bullets[j]); 
                     j--; 
+                }
+                if(saucers[0] != NULL){
+                    printf("not working\n"); 
+                    saucer_delete(saucers[0]);
+                    saucers[0] = NULL;
                 }
                 timer = 0; 
             }

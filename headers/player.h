@@ -88,9 +88,12 @@ typedef enum saucerType{
 typedef struct Saucer{
     Vector2 position; 
     Vector2 velocity; 
-    Vector2 acceleration; 
+    float timer; 
+    float speed; 
+    float timerLim; 
     saucerType type; 
     float scale; 
+    float angle; 
     int numVerts; 
     Vector2 vertices[]; 
 }Saucer; 
@@ -102,6 +105,8 @@ void saucer_update(Saucer *saucer, double dt);
 Vector2 saucer_to_world(Saucer *saucer, Vector2 vec); 
 Vector2 saucer_to_screen(Saucer *saucer, Vector2 vec); 
 Vector2 saucer_check_wrap(Saucer *saucer, Vector2 vec); 
+void saucer_delete(Saucer *saucer); 
+bool saucer_collides_bullet(Saucer *saucer, Bullet *bullet);
 
 
 Asteroid *asteroid_create(asteroidType type); 

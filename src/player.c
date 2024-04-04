@@ -336,7 +336,7 @@ void bulletlist_remove(BulletList *list, Bullet *bullet){
 
 Saucer *saucer_create(saucerType type){
     Saucer *saucer = (Saucer *)malloc(sizeof(Saucer) + sizeof(Vector2) * 9);
-    saucer->type = type; 
+    saucer->type = type;
     Vector2 vertices[] = {
         (Vector2){5,0},
         (Vector2){2, 1.5}, 
@@ -349,8 +349,16 @@ Saucer *saucer_create(saucerType type){
         (Vector2){5,0}
     };
     memcpy(saucer->vertices, vertices, 9 * sizeof(Vector2)); 
-    saucer->velocity = (Vector2){0,0}; 
-    saucer->acceleration = (Vector2){0,0}; 
+    saucer->angle = (double)random()/RAND_MAX * 6.28; 
+    if(type == BIGSAUCE){
+        saucer->timerLim = 10; 
+        saucer->speed = 50; 
+    }else if(type == SMALLSAUCE){
+        saucer->timerLim = 5; 
+        saucer->speed = 100; 
+    }
+    saucer->timer = saucer->timerLim;  
+    saucer->velocity = (Vector2){saucer->speed * cos(saucer->angle), saucer->speed * sin(saucer->angle)}; 
     saucer->position = (Vector2){0,0}; 
     saucer->numVerts = sizeof(vertices)/sizeof(Vector2); 
     if(type == SMALLSAUCE){
@@ -362,27 +370,30 @@ Saucer *saucer_create(saucerType type){
 }
 
 void saucer_update(Saucer *saucer, double dt){
-    Vector2 acc = saucer->acceleration; 
-    Vector2 vel = {saucer->velocity.x + acc.x * dt, saucer->velocity.y + acc.y *dt}; 
-    Vector2 newPos = {saucer->position.x + vel.x * dt + (1/2) * acc.x * pow(dt,2), saucer->position.y + vel.y * dt + (1/2) * acc.y * pow(dt,2)}; 
+    saucer->timer -= dt; 
+    if(saucer->timer < 0){
+        saucer->timer = saucer->timerLim;
+        saucer->angle = ((double)random()/RAND_MAX * 2 * PI); 
+    }
+    saucer->velocity = (Vector2){saucer->speed * cos(saucer->angle), saucer->speed * sin(saucer->angle)}; 
+    Vector2 vel = saucer->velocity; 
+    Vector2 newPos = {saucer->position.x + vel.x * dt, saucer->position.y + vel.y * dt}; 
     
     saucer->position = saucer_check_wrap(saucer,newPos); 
-    saucer->acceleration = (Vector2){0,0}; 
 }
 
 void saucer_render(Saucer *saucer, Color color){
     for(int i = 1; i < saucer->numVerts; i++){
-        Vector2 a = saucer->vertices[i -1]; 
-        Vector2 b = saucer->vertices[i]; 
+        Vector2 a = saucer->vertices[i -1];
+        Vector2 b = saucer->vertices[i];
         a = saucer_to_screen(saucer, saucer_to_world(saucer, a)); 
         b = saucer_to_screen(saucer, saucer_to_world(saucer, b)); 
         DrawLine(a.x, a.y, b.x, b.y,color); 
     }   
-
 }
+
 void saucer_delete(Saucer *saucer){
     free(saucer); 
-    saucer = NULL; 
 }
 Vector2 saucer_to_world(Saucer *saucer, Vector2 vec){
     Vector2 newVec = vec; 
@@ -394,6 +405,20 @@ Vector2 saucer_to_world(Saucer *saucer, Vector2 vec){
 
 Vector2 saucer_to_screen(Saucer *saucer, Vector2 vec){
     return (Vector2){WIDTH/2 + vec.x, HEIGHT/2 - vec.y}; 
+}
+
+// make this into a general function as well
+bool saucer_collides_bullet(Saucer *saucer, Bullet *bullet){
+    for(int i = 1; i < saucer->numVerts; i++){
+        Vector2 a = saucer_to_screen(saucer, saucer_to_world(saucer, saucer->vertices[i-1])); 
+        Vector2 b = saucer_to_screen(saucer, saucer_to_world(saucer, saucer->vertices[i])); 
+        Vector2 c = saucer_to_screen(saucer, saucer_to_world(saucer, (Vector2){0,0})); 
+        Vector2 bulletPos = (Vector2){bullet->position.x + 5 * cos(bullet->angle + PI/2), bullet->position.y - 5 * sin(bullet->angle + PI/2)};  
+        if(lines_intersect(a, b, bulletPos, c)){
+            return false; 
+        }
+    } 
+    return true;  
 }
 
 // make into a general function for all objects
