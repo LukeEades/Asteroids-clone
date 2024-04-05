@@ -46,6 +46,9 @@ int main(){
     char levelText[32]; 
     Saucer **saucers = (Saucer**)malloc(sizeof(Saucer*));
     while(!WindowShouldClose()){
+        printf("%i\n", IsSoundReady(explosion)); 
+        printf("%i\n", IsSoundReady(shoot)); 
+        printf("%i\n", IsSoundReady(collision)); 
         if(!strcmp(screenState, "start")){
             BeginDrawing(); 
             char titleText[32] = "Asteroids";
