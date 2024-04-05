@@ -18,7 +18,7 @@ int main(){
         printf("Window is ready\n"); 
     }
     SetTargetFPS(60); 
-
+    ChangeDirectory(GetApplicationDirectory());
     Player *player = player_create(); 
     player_scale(player, (Vector2){30,30}); 
     player_position_set(player, (Vector2){0,0}); 
@@ -27,9 +27,9 @@ int main(){
 
     Sound explosion = LoadSound("./resources/explosion.wav"); 
     SetSoundVolume(explosion, 1.0); 
-    Sound shoot = LoadSound("../resources/shoot.wav"); 
+    Sound shoot = LoadSound("./resources/shoot.wav"); 
     SetSoundVolume(shoot, 1.0); 
-    Sound collision = LoadSound("resources/collision.wav"); 
+    Sound collision = LoadSound("./resources/collision.wav"); 
     SetSoundVolume(collision, 1.0); 
 
     player_set_sound(player, shoot); 
@@ -46,9 +46,6 @@ int main(){
     char levelText[32]; 
     Saucer **saucers = (Saucer**)malloc(sizeof(Saucer*));
     while(!WindowShouldClose()){
-        printf("%i\n", IsSoundReady(explosion)); 
-        printf("%i\n", IsSoundReady(shoot)); 
-        printf("%i\n", IsSoundReady(collision)); 
         if(!strcmp(screenState, "start")){
             BeginDrawing(); 
             char titleText[32] = "Asteroids";
