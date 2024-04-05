@@ -25,11 +25,11 @@ int main(){
     int numAsteroids = 6; 
     AsteroidList *list = asteroid_list_create(numAsteroids); 
 
-    Sound explosion = LoadSound("./resources/explosion.wav"); 
+    Sound explosion = LoadSound("../resources/explosion.wav"); 
     SetSoundVolume(explosion, 1.0); 
-    Sound shoot = LoadSound("./resources/shoot.wav"); 
+    Sound shoot = LoadSound("../resources/shoot.wav"); 
     SetSoundVolume(shoot, 1.0); 
-    Sound collision = LoadSound("./resources/collision.wav"); 
+    Sound collision = LoadSound("../resources/collision.wav"); 
     SetSoundVolume(collision, 1.0); 
 
     player_set_sound(player, shoot); 
